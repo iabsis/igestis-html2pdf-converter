@@ -94,7 +94,7 @@ class Pdf  {
                 
                 readfile($dest);
                 
-                //@unlink($src);
+                @unlink($src);
                 @unlink($dest);
                 exit;
                 
