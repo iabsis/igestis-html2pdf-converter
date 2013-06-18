@@ -1,2 +1,3 @@
 classes			usr/share/igestis/modules/Html2PdfConverter
 config			usr/share/igestis/modules/Html2PdfConverter
+bin			usr/share/igestis/modules/Html2PdfConverter
