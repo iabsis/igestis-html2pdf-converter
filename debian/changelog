@@ -1,3 +1,9 @@
+igestis-html2pdf (2.0.1) UNRELEASED; urgency=low
+
+  * Corrections.
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 18 Jun 2013 16:27:20 +0200
+
 igestis-html2pdf (2.0.0) wheezy; urgency=low
 
   * Initial release version 2.0.0.
