@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: igestis-html2pdf
 Architecture: all
-Depends: igestis (>= 2.3), xvfb, wkhtmltopdf
+Depends: igestis (>= 2.3)
 Description: HTML to PDF converter module.
  This module permit to create big PDF file
  from HTML input.
