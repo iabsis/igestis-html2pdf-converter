@@ -1,3 +1,2 @@
-Tcpdf         usr/share/igestis/modules/Tcpdf/classes/
-
-Tcpdf.php	usr/share/igestis/modules/Tcpdf/classes/
+classes			usr/share/igestis/modules/Html2PdfConverter
+config			usr/share/igestis/modules/Html2PdfConverter

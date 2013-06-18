@@ -4,7 +4,7 @@
 # see: dh_installdeb(1)
 
 CACHE_FOLDER="/var/cache/igestis/"
-MODULE_NAME="Tcpdf"
+MODULE_NAME="Html2PdfConverter"
 
 mkdir -p /var/log/igestis/${MODULE_NAME}/
 chown www-data -R /var/log/igestis/${MODULE_NAME}/

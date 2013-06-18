@@ -1,14 +1,13 @@
-Source: igestis-tcpdf
+Source: igestis-html2pdf
 Section: web
 Priority: extra
 Maintainer: Olivier Bitsch <olivier.b@iabsis.com>
 Build-Depends: debhelper (>= 5), po-debconf
 Standards-Version: 3.7.2
 
-Package: igestis-tcpdf
+Package: igestis-html2pdf
 Architecture: all
-Depends: igestis (>= 2.3)
-Description: File Explorer for iGestis
- This module also the users to browse their
- personal and common folders. iGestis Ajaxplorer 
- is based on Ajaxplorer software.
+Depends: igestis (>= 2.3), xvfb, wkhtmltopdf
+Description: HTML to PDF converter module.
+ This module permit to create big PDF file
+ from HTML input.
