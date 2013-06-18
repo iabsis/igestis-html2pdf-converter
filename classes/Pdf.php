@@ -14,15 +14,31 @@ class Pdf  {
      */
     private $html;
     
+    /**
+     *
+     * @var bool
+     */
+    private $bookmarks;
+    
+    
     const MODE_FORCE_DOWNLOAD = 1;
     const MODE_INLINE = 2;
     const MODE_WRITE = 4;
     const MODE_WRITE_AND_FORCE_DOWNLOAD = 8;
     
     public function __construct() {
-        
+        $this->bookmarks = false;
     }
     
+    /**
+     * 
+     * @param bool $bookmarks
+     */
+    public function enableBookmarks($bookmarks = true) {
+        $this->bookmarks = (bool)$bookmarks;
+    }
+
+        
     /**
      * Add html to the pdf content
      * @param type $html
@@ -39,9 +55,9 @@ class Pdf  {
     public function output($filename="your_file.pdf", $mode=self::MODE_FORCE_DOWNLOAD) {
 
         switch ($mode) {
-            case MODE_FORCE_DOWNLOAD : case "D" :
+            case self::MODE_FORCE_DOWNLOAD : case "D" :
                 // download PDF as file
-                die($this->html);
+                
 				if (ob_get_contents()) {
 					$this->Error('Some data has already been output, can\'t send PDF file');
 				}
@@ -67,12 +83,57 @@ class Pdf  {
 				header('Content-Disposition: attachment; filename="'.basename($filename).'"');
 				header('Content-Transfer-Encoding: binary');
                 
+                do {
+                    $src = sys_get_temp_dir() . "/" . uniqid() . ".htm";
+                } while (is_file($src));
+                
+                $dest = tempnam(sys_get_temp_dir(), "wkhtm");
+                
+                file_put_contents($src, iconv("UTF-8", "ISO-8859-1", $this->html)); 
+                $this->wkhtmltopdf($src, $dest);
+                
+                readfile($dest);
+                
+                //@unlink($src);
+                @unlink($dest);
+                exit;
+                
+                break;
+                
+            case self::MODE_WRITE : case "F" :
+                try {
+                    do {
+                        $src = sys_get_temp_dir() . "/" . uniqid() . ".htm";
+                    } while (is_file($src));
+
+                    $dest = $filename;
+                    file_put_contents($src, iconv("UTF-8", "ISO-8859-1", $this->html)); 
+                    
+                    igestis_logger("create pdf into $dest");
+                    $this->wkhtmltopdf($src, $dest);
+                    //@unlink($src);
+                } catch(\Exception $e) {
+                    $this->Error($e->getMessage());
+                }
+                                
                 break;
         }
+        
     }
     
     private function Error($msg) {
         throw new Exception('Html2Pdf ERROR: '.$msg);
+    }
+    
+    private function wkhtmltopdf($src, $dest) {
+        $output = $return_var = null;     
+        
+        $exec = __DIR__ . "/../bin/wkhtmltopdf-$(uname -m) --toc-disable-back-links --toc-disable-links --disable-internal-links --disable-external-links " . ($this->bookmarks ? " --outline " : "") .  escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile";
+        
+        exec( $exec, $output, $return_var);
+        //exec("echo " . escapeshellarg($this->html) . " | iconv -t iso-8859-1 -f utf-8 -o - | xvfb-run -a -s '-screen 0 640x480x16' wkhtmltopdf --encoding UTF-8 - " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile", $output, $return_var);
+        //exec("xvfb-run -a -s '-screen 0 640x480x16' wkhtmltopdf " . escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile", $output, $return_var);
+        igestis_logger($exec);
     }
 }
 
