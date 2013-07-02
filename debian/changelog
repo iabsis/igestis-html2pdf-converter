@@ -1,4 +1,10 @@
-igestis-html2pdf (2.0.1) UNRELEASED; urgency=low
+igestis-html2pdf (2.0.2) squeeze; urgency=low
+
+  * Ajout d'une méthode pour la gestion des headers.
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 02 Jul 2013 14:20:50 +0200
+
+igestis-html2pdf (2.0.1) squeeze; urgency=low
 
   * Corrections.
 
