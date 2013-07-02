@@ -20,6 +20,18 @@ class Pdf  {
      */
     private $bookmarks;
     
+    /**
+     *
+     * @var string Content of the header 
+     */
+    private $headerContent;
+    
+    /**
+     *
+     * @var int header height (mm) 
+     */
+    private $headerHeight;
+
     
     const MODE_FORCE_DOWNLOAD = 1;
     const MODE_INLINE = 2;
@@ -28,6 +40,9 @@ class Pdf  {
     
     public function __construct() {
         $this->bookmarks = false;
+        $this->showHeader = false;
+        $this->headerContent = "";
+        $this->headerHeight = 20;
     }
     
     /**
@@ -37,7 +52,24 @@ class Pdf  {
     public function enableBookmarks($bookmarks = true) {
         $this->bookmarks = (bool)$bookmarks;
     }
+    
+    /**
+     * 
+     * @param string $headerContent
+     */
+    public function setHeader($headerContent) {
+        $this->headerContent = $headerContent;
+    }
+    
+    /**
+     * Set header height in mm
+     * @param int $headerHeight
+     */
+    public function setHeaderHeight($headerHeight) {
+        $this->headerHeight = (int)$headerHeight;
+    }
 
+        
         
     /**
      * Add html to the pdf content
@@ -53,7 +85,6 @@ class Pdf  {
      * @param string $mode Use the MODE_* constants or the same letter as fpdf library
      */
     public function output($filename="your_file.pdf", $mode=self::MODE_FORCE_DOWNLOAD) {
-
         switch ($mode) {
             case self::MODE_FORCE_DOWNLOAD : case "D" :
                 // download PDF as file
@@ -89,7 +120,7 @@ class Pdf  {
                 
                 $dest = tempnam(sys_get_temp_dir(), "wkhtm");
                 
-                file_put_contents($src, iconv("UTF-8", "ISO-8859-1", $this->html)); 
+                file_put_contents($src, $this->html); 
                 $this->wkhtmltopdf($src, $dest);
                 
                 readfile($dest);
@@ -107,11 +138,10 @@ class Pdf  {
                     } while (is_file($src));
 
                     $dest = $filename;
-                    file_put_contents($src, iconv("UTF-8", "ISO-8859-1", $this->html)); 
+                    file_put_contents($src, $this->html); 
                     
                     igestis_logger("create pdf into $dest");
                     $this->wkhtmltopdf($src, $dest);
-                    //@unlink($src);
                 } catch(\Exception $e) {
                     $this->Error($e->getMessage());
                 }
@@ -122,19 +152,25 @@ class Pdf  {
     }
     
     private function Error($msg) {
-        throw new Exception('Html2Pdf ERROR: '.$msg);
+        throw new \Exception('Html2Pdf ERROR: '.$msg);
     }
     
     private function wkhtmltopdf($src, $dest) {
         $output = $return_var = null;     
         
-        $exec = __DIR__ . "/../bin/wkhtmltopdf-$(uname -m) --toc-disable-back-links --toc-disable-links --disable-internal-links --disable-external-links " . ($this->bookmarks ? " --outline " : "") .  escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile";
+        $header = "";
+        if($this->headerContent) {
+             $headerHtmlFile = sys_get_temp_dir() . "/" . uniqid() . ".htm";
+             file_put_contents($headerHtmlFile, $this->headerContent);
+             $header = " -T " . $this->headerHeight . "mm --header-html " . escapeshellarg($headerHtmlFile) . " --header-spacing '3' ";
+;        }
+        
+        $exec = __DIR__ . "/../bin/wkhtmltopdf-$(uname -m) --encoding UTF-8 --toc-disable-back-links --toc-disable-links --disable-internal-links --disable-external-links $header " . ($this->bookmarks ? " --outline " : "") .  escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile";
         
         exec( $exec, $output, $return_var);
         //exec("echo " . escapeshellarg($this->html) . " | iconv -t iso-8859-1 -f utf-8 -o - | xvfb-run -a -s '-screen 0 640x480x16' wkhtmltopdf --encoding UTF-8 - " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile", $output, $return_var);
         //exec("xvfb-run -a -s '-screen 0 640x480x16' wkhtmltopdf " . escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile", $output, $return_var);
+        unlink($headerHtmlFile);
         igestis_logger($exec);
     }
 }
-
-?>
