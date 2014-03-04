@@ -25,12 +25,23 @@ class Pdf  {
      * @var string Content of the header 
      */
     private $headerContent;
+    /**
+     *
+     * @var string Content of the footer 
+     */
+    private $footerContent;
     
     /**
      *
      * @var int header height (mm) 
      */
     private $headerHeight;
+    
+    /**
+     *
+     * @var int footer height (mm) 
+     */
+    private $footerHeight;
 
     
     const MODE_FORCE_DOWNLOAD = 1;
@@ -43,6 +54,7 @@ class Pdf  {
         $this->showHeader = false;
         $this->headerContent = "";
         $this->headerHeight = 20;
+        $this->footerHeight = 20;
     }
     
     /**
@@ -68,6 +80,22 @@ class Pdf  {
     public function setHeaderHeight($headerHeight) {
         $this->headerHeight = (int)$headerHeight;
     }
+    
+    /**
+     * 
+     * @param string $headerContent
+     */
+    public function setFooter($footerContent) {
+        $this->footerContent = $footerContent;
+    }
+    
+    /**
+     * Set header height in mm
+     * @param int $footerHeight
+     */
+    public function setFooterHeight($footerHeight) {
+        $this->footerHeight = (int)$footerHeight;
+    }
 
         
         
@@ -85,6 +113,7 @@ class Pdf  {
      * @param string $mode Use the MODE_* constants or the same letter as fpdf library
      */
     public function output($filename="your_file.pdf", $mode=self::MODE_FORCE_DOWNLOAD) {
+        //die($this->html . $this->footerContent);
         switch ($mode) {
             case self::MODE_FORCE_DOWNLOAD : case "D" :
                 // download PDF as file
@@ -163,9 +192,16 @@ class Pdf  {
              $headerHtmlFile = sys_get_temp_dir() . "/" . uniqid() . ".htm";
              file_put_contents($headerHtmlFile, $this->headerContent);
              $header = " -T " . $this->headerHeight . "mm --header-html " . escapeshellarg($headerHtmlFile) . " --header-spacing '3' ";
-;        }
+        }
         
-        $exec = __DIR__ . "/../bin/wkhtmltopdf-$(uname -m) --encoding UTF-8 --toc-disable-back-links --toc-disable-links --disable-internal-links --disable-external-links $header " . ($this->bookmarks ? " --outline " : "") .  escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile";
+        if($this->footerContent) {
+            $footerHtmlFile = sys_get_temp_dir() . "/" . uniqid() . ".htm";
+            file_put_contents($footerHtmlFile, $this->footerContent);
+            $footer = " -B " . $this->footerHeight . "mm --footer-html " . escapeshellarg($footerHtmlFile) . " --footer-spacing '3' ";
+            
+        }
+        
+        $exec = __DIR__ . "/../bin/wkhtmltopdf-$(uname -m) --encoding UTF-8 --toc-disable-back-links --toc-disable-links --disable-internal-links --disable-external-links $header $footer " . ($this->bookmarks ? " --outline " : "") .  escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile";
         
         exec( $exec, $output, $return_var);
         //exec("echo " . escapeshellarg($this->html) . " | iconv -t iso-8859-1 -f utf-8 -o - | xvfb-run -a -s '-screen 0 640x480x16' wkhtmltopdf --encoding UTF-8 - " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile", $output, $return_var);
