@@ -13,42 +13,42 @@ class Pdf  {
      * @var string Html content
      */
     private $html;
-    
+
     /**
      *
      * @var bool
      */
     private $bookmarks;
-    
+
     /**
      *
-     * @var string Content of the header 
+     * @var string Content of the header
      */
     private $headerContent;
     /**
      *
-     * @var string Content of the footer 
+     * @var string Content of the footer
      */
     private $footerContent;
-    
+
     /**
      *
-     * @var int header height (mm) 
+     * @var int header height (mm)
      */
     private $headerHeight;
-    
+
     /**
      *
-     * @var int footer height (mm) 
+     * @var int footer height (mm)
      */
     private $footerHeight;
 
-    
+
     const MODE_FORCE_DOWNLOAD = 1;
     const MODE_INLINE = 2;
     const MODE_WRITE = 4;
     const MODE_WRITE_AND_FORCE_DOWNLOAD = 8;
-    
+
     public function __construct() {
         $this->bookmarks = false;
         $this->showHeader = false;
@@ -56,23 +56,23 @@ class Pdf  {
         $this->headerHeight = 20;
         $this->footerHeight = 20;
     }
-    
+
     /**
-     * 
+     *
      * @param bool $bookmarks
      */
     public function enableBookmarks($bookmarks = true) {
         $this->bookmarks = (bool)$bookmarks;
     }
-    
+
     /**
-     * 
+     *
      * @param string $headerContent
      */
     public function setHeader($headerContent) {
         $this->headerContent = $headerContent;
     }
-    
+
     /**
      * Set header height in mm
      * @param int $headerHeight
@@ -80,15 +80,15 @@ class Pdf  {
     public function setHeaderHeight($headerHeight) {
         $this->headerHeight = (int)$headerHeight;
     }
-    
+
     /**
-     * 
+     *
      * @param string $headerContent
      */
     public function setFooter($footerContent) {
         $this->footerContent = $footerContent;
     }
-    
+
     /**
      * Set header height in mm
      * @param int $footerHeight
@@ -97,8 +97,8 @@ class Pdf  {
         $this->footerHeight = (int)$footerHeight;
     }
 
-        
-        
+
+
     /**
      * Add html to the pdf content
      * @param type $html
@@ -106,7 +106,7 @@ class Pdf  {
     public function writeHtml($html) {
         $this->html .= $html;
     }
-    
+
     /**
      * Create the Pdf file
      * @param string $filename
@@ -117,7 +117,7 @@ class Pdf  {
         switch ($mode) {
             case self::MODE_FORCE_DOWNLOAD : case "D" :
                 // download PDF as file
-                
+
 				if (ob_get_contents()) {
 					$this->Error('Some data has already been output, can\'t send PDF file');
 				}
@@ -142,24 +142,24 @@ class Pdf  {
 				// use the Content-Disposition header to supply a recommended filename
 				header('Content-Disposition: attachment; filename="'.basename($filename).'"');
 				header('Content-Transfer-Encoding: binary');
-                
+
                 do {
                     $src = sys_get_temp_dir() . "/" . uniqid() . ".htm";
                 } while (is_file($src));
-                
+
                 $dest = tempnam(sys_get_temp_dir(), "wkhtm");
-                
-                file_put_contents($src, $this->html); 
+
+                file_put_contents($src, $this->html);
                 $this->wkhtmltopdf($src, $dest);
-                
+
                 readfile($dest);
-                
+
                 @unlink($src);
                 @unlink($dest);
                 exit;
-                
+
                 break;
-                
+
             case self::MODE_WRITE : case "F" :
                 try {
                     do {
@@ -167,46 +167,46 @@ class Pdf  {
                     } while (is_file($src));
 
                     $dest = $filename;
-                    file_put_contents($src, $this->html); 
-                    
-                    igestis_logger("create pdf into $dest");
+                    file_put_contents($src, $this->html);
+
+                    \Igestis\Utils\Debug::FileLogger("create pdf into $dest");
                     $this->wkhtmltopdf($src, $dest);
                 } catch(\Exception $e) {
                     $this->Error($e->getMessage());
                 }
-                                
+
                 break;
         }
-        
+
     }
-    
+
     private function Error($msg) {
         throw new \Exception('Html2Pdf ERROR: '.$msg);
     }
-    
+
     private function wkhtmltopdf($src, $dest) {
-        $output = $return_var = null;     
-        
+        $output = $return_var = null;
+
         $header = "";
         if($this->headerContent) {
              $headerHtmlFile = sys_get_temp_dir() . "/" . uniqid() . ".htm";
              file_put_contents($headerHtmlFile, $this->headerContent);
              $header = " -T " . $this->headerHeight . "mm --header-html " . escapeshellarg($headerHtmlFile) . " --header-spacing '3' ";
         }
-        
+
         if($this->footerContent) {
             $footerHtmlFile = sys_get_temp_dir() . "/" . uniqid() . ".htm";
             file_put_contents($footerHtmlFile, $this->footerContent);
             $footer = " -B " . $this->footerHeight . "mm --footer-html " . escapeshellarg($footerHtmlFile) . " --footer-spacing '3' ";
-            
+
         }
-        
+
         $exec = __DIR__ . "/../bin/wkhtmltopdf-$(uname -m) --encoding UTF-8 --toc-disable-back-links --toc-disable-links --disable-internal-links --disable-external-links $header $footer " . ($this->bookmarks ? " --outline " : "") .  escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile";
-        
+
         exec( $exec, $output, $return_var);
         //exec("echo " . escapeshellarg($this->html) . " | iconv -t iso-8859-1 -f utf-8 -o - | xvfb-run -a -s '-screen 0 640x480x16' wkhtmltopdf --encoding UTF-8 - " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile", $output, $return_var);
         //exec("xvfb-run -a -s '-screen 0 640x480x16' wkhtmltopdf " . escapeshellarg($src) . " " . escapeshellarg($dest) . " 2>&1 > /var/log/igestis/Html2PdfConverter/logfile", $output, $return_var);
         unlink($headerHtmlFile);
-        igestis_logger($exec);
+        \Igestis\Utils\Debug::FileLogger($exec);
     }
 }
