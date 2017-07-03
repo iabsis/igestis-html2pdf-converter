@@ -1,3 +1,9 @@
+igestis-html2pdf (2.0.3) squeeze; urgency=medium
+
+  * Packaging landscape mode
+
+ -- Gilles Hemmerlé <gillesh@gilles-hp.iabsis.local>  Mon, 03 Jul 2017 11:30:05 +0200
+
 igestis-html2pdf (2.0.2) squeeze; urgency=low
 
   * Ajout d'une méthode pour la gestion des headers.
