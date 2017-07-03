@@ -1,3 +1,15 @@
+igestis-html2pdf (3.0.2) squeeze; urgency=medium
+
+  * Removed  debug
+
+ -- Gilles Hemmerlé <gillesh@gilles-hp.iabsis.local>  Mon, 03 Jul 2017 19:17:05 +0200
+
+igestis-html2pdf (3.0.1) squeeze; urgency=medium
+
+  * Incremented to v3
+
+ -- Gilles Hemmerlé <gillesh@gilles-hp.iabsis.local>  Mon, 03 Jul 2017 16:48:52 +0200
+
 igestis-html2pdf (2.0.3) squeeze; urgency=medium
 
   * Packaging landscape mode
